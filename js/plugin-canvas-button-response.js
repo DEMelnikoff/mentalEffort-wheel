@@ -76,7 +76,11 @@ var jsPsychCanvasButtonResponse = (function (jspsych) {
       trial(display_element, trial) {
           // create canvas
           var html = 
-            '<div id="activation-code" style="text-align:center; height:120px">' +
+            '<div id="activation-code" style="margin: 0 auto; height:120px">' +
+              '<div class="keyCues">S<br>blue</div>' +
+              '<div class="keyCues">F<br>red</div>' +
+              '<div class="keyCues">H<br>green</div>' +
+              '<div class="keyCues">K<br>brown</div>' +
             '</div>' +
             '<div id="jspsych-canvas-button-response-stimulus">' +
               '<canvas id="jspsych-canvas-stimulus" height="' +

@@ -433,7 +433,7 @@ const dmPsych = (function() {
   };
 
   // spinner task
-  obj.spinner = function(canvas, spinnerData, sectors, targetPressTime, guaranteedOutcome, nSpins) {
+  obj.spinner = function(canvas, spinnerData, sectors, effort, guaranteedOutcome, nSpins) {
 
     /* get context */
     const ctx = canvas.getContext("2d"); 
@@ -467,7 +467,7 @@ const dmPsych = (function() {
     /* state variables */
     let isSpinning = false;      // true when wheel is spinning, false otherwise
     let isAccelerating = false;  // true when wheel is accelerating, false otherwise
-    let readyToSpin = false;     // true when the wheel is moving fast enough to spin;
+    let isPushed = false;        // true when the wheel is pushed
     let currentAngle = 0;        // wheel angle after last perturbation
     let accel = 0;               // wheel's current acceleration
     let accel_postDecel = 0;     // wheel's accelertation after decelerating
@@ -475,128 +475,102 @@ const dmPsych = (function() {
     let vel_postDecel = 0;       // wheel's velocity after decelerating
     let nSpeedUp = 0;            // number of frames over which the wheel has accelerated
     let nSlowDown = 0;           // number of frames over which the wheel has decelerated
-    let score = 0;
+    let score = 0;               // total score
+    let nSpin = 0;               // total number of spins
 
     /* press rate variables */
-    let keydown = false;
-    let lastPressTime = performance.now();
-    let timeSinceLastPress = 0;
-    let pressTimes = [];
+    let stimTime;
+    let rt;
 
-    /* arrows */
-    const upArrow = '<p><i class="arrow up"></i></p>';
-    const downArrow = '<p><i class="arrow down"></i></p>';
-    const leftArrow = '<p><i class="arrow left"></i></p>';
-    const rightArrow = '<p><i class="arrow right"></i></p>';
+    /* stroop variables */
+    let colorWords = ['blue', 'red', 'green', 'brown'];
+    let keyCodes = [83, 70, 72, 75];
+    let targetWord;
+    let nPress = 0;
+    let nCorrect = 0;
 
+    // generate stroop stimulus
+    const getStim = () => {
 
-    // functions for displaying random number
-    const getSequence = () => {
-      let inputVal = document.getElementById("code").value;
-      if (inputVal == code) {
-        vel_max_rand = rand(vel_max + 180, vel_max - 30);
-        spin();
-      } else {
-        console.log("error")
-      }
+      let wordIdx = Math.floor(Math.random() * colorWords.length);
+      let colorIdx = wordIdx;
+      if (effort == 'highEffort') {
+        while (wordIdx == colorIdx) {
+          colorIdx = Math.floor(Math.random() * colorWords.length);
+        }
+      };
+      let color = colorWords[colorIdx];
+      targetWord = colorWords.splice(wordIdx, 1);
+      let stim = `<span style="color:${color}; font-size: 25px">${targetWord[0]}</span>`
+      if (colorWords.length == 2) {
+        colorWords = ['blue', 'red', 'green', 'brown'];
+      };
+      return stim
     };
 
-    const displayInputForm = () => {
-      activationCode.innerHTML = 
-        '<form>' +
-          '<input type="text" id="code" name="code" onkeypress="return event.keyCode != 13" placeholder="Activation Code" style="height:30px; width:200px; font-size:20px"><br>' +
-          '<button id="spin_btn" type="button" style="height:30px; width:80px; font-size:20px; margin-top: 8px">Spin!</button>' +
-        '</form>';
-      spin_btn = document.getElementById("spin_btn");
-      spin_btn.addEventListener("click", getValue);
+    // display stroop stimulus
+    const displayStim = () => {
+      pointer.innerHTML = getStim();
+      stimTime = performance.now();
+      window.addEventListener('keydown', listenForInput, false);
     };
 
-    const displayActivationCode = () => {
-      code = Math.floor(10 + Math.random() * 90);
-      let codeHTML = '<span style="font-size:50px; vertical-align: middle">' + code + '</span>';
-      activationCode.innerHTML = codeHTML;
-      setTimeout(displayInputForm, 1000);
-    };
-
-    displayActivationCode();
-
-
-    // listen for keydown
-    const listenForKeydown = window.addEventListener('keydown', (e) => {
-      if (e.key == "ArrowRight" || e.code == "ArrowRight" || e.keyCode == 39) { 
-        if (!isSpinning & !keydown) {
-          keydown = true;
-          pressTimes.push(timeSinceLastPress);
-          lastPressTime = performance.now();
+    // listen for response
+    const listenForInput = (e) => {
+      let keyCodeIdx = keyCodes.findIndex((i) => i == e.keyCode);
+      let wordIdx = ['blue', 'red', 'green', 'brown'].findIndex((i) => i == targetWord);
+      if (keyCodeIdx >= 0) {
+        window.removeEventListener('keydown', listenForInput, false);
+        nPress++;
+        let rt = performance.now() - stimTime;
+        spinnerData.pressTimes.push(rt);
+        console.log(spinnerData.pressTimes);
+        nSlowDown = 0;
+        vel = 0;
+        vel_postDecel = 0;
+        if (keyCodeIdx == wordIdx) {
+          nCorrect++;
+          isPushed = true;
+          if (nCorrect == 5) {
+            window.cancelAnimationFrame(req_push);
+            nCorrect = 0;
+            targetWord;
+            colorWords = ['blue', 'red', 'green', 'brown'];
+            isPushed = false;
+            vel_max_rand = rand(vel_max + 180, vel_max - 30);
+            spin();
+            return;
+          };
+        } else {
+          nCorrect > 1 ? nCorrect-- : nCorrect = 0;
         };
+        displayStim();
       };
-      if (e.key == " " || e.code == "Space" || e.keyCode == 32) { 
-        if (!isSpinning & readyToSpin) {
-          isAccelerating = true;
-          isSpinning = true;
-          readyToSpin = false;
-          vel_max_rand = rand(vel_max + 180, vel_max - 30);
-          spin()
-        };
-      };
-    });
-
-    /* define spinning functions */
-    const speedUp = () => {
-      nSpeedUp += fpsAdjust;
-      accel += (.0005 * nSpeedUp) ** 1.5;
-      currentAngle += vel*dt + .5*accel*(dt**2);
-      vel = Math.min(vel_min, vel + accel*dt);
-      render(currentAngle);
-      if (Math.abs(vel) == vel_min || readyToSpin) {
-        readyToSpin = true;
-        pointer.textContent = 'Ready!';
-        pointer.style.background = 'grey';
-      } else {
-        readyToSpin = false;
-        pointer.textContent = '';
-        pointer.style.background = 'white';
-      };
-    };
-
-    const slowDown = () => {
-      nSlowDown += fpsAdjust;
-      vel_postDecel = vel * (friction ** nSlowDown);
-      accel_postDecel = accel * (friction ** nSlowDown);
-      currentAngle += vel_postDecel * dt;
-      if (Math.abs(vel_postDecel) == vel_min) {
-        readyToSpin = true;
-        pointer.textContent = 'Ready!';
-        pointer.style.background = 'grey';
-      } else {
-        readyToSpin = false;
-        pointer.textContent = '';
-        pointer.style.background = 'white';
-      };
-      render(currentAngle);
     };
 
     const render = (deg) => {
       canvas.style.transform = `rotate(${deg}deg)`;
     };
 
+    let req_push;
+
+    const push = () => {
+      req_push = window.requestAnimationFrame(push);
+      if (isPushed) { 
+        vel = nCorrect**2 * ((30 - 10) / (5 - 1));
+        nSlowDown = 0;
+        currentAngle += vel * dt;
+        render(currentAngle);
+      }
+    };
+
+    displayStim();
+
+    push();
+
     const spin = function() {
 
-      req_spin = window.requestAnimationFrame(spin);
-
-      // stop accelerating when max speed is reached
-
-      /*
-      if (guaranteedOutcome[spinnerData.outcomes.length] == 1) {
-        if (Math.abs(vel) == vel_max && Math.floor(currentAngle % 360) > 93 && Math.floor(currentAngle % 360) < 108) { 
-          isAccelerating = false
-        };
-      } else {
-        if (Math.abs(vel) >= vel_max_rand) { 
-          isAccelerating = false
-        };
-      };
-      */
+      const req_spin = window.requestAnimationFrame(spin);
 
       if (vel < vel_max_rand) {
         isAccelerating = true;
@@ -606,9 +580,11 @@ const dmPsych = (function() {
 
       // accelerate
       if (isAccelerating) {
+        if (nSpeedUp == 0) {
+          vel = 200;
+        }
         nSpeedUp += fpsAdjust;
-        accel += (.0005 * nSpeedUp) ** 1.5;
-        console.log(accel, vel, dt, nSpeedUp);
+        accel += (.01 * nSpeedUp) ** 1.5;
         currentAngle += vel*dt + 2*accel*(dt**2);
         vel += dt*accel*4;
         pointer.textContent = 'Spinning!';
@@ -626,6 +602,7 @@ const dmPsych = (function() {
           render(currentAngle);       
         } else {
           // stop spinner
+          nSpin++;
           vel = 0;
           vel_postDecel = 0;
           accel = 0;
@@ -639,10 +616,13 @@ const dmPsych = (function() {
           pointer.style.font = '2rem/0 sans-serif';
           pointer.textContent = sector.label;
           pointer.style.background = sector.color;
-          pressTimes.shift();
-          spinnerData.pressTimes.push(pressTimes);
-          pressTimes = [];
           window.cancelAnimationFrame(req_spin);
+          if (nSpin < nSpins) {
+            setTimeout(() => {
+              displayStim();
+              push();
+            }, 2000);
+          };
         };
       };
     };

@@ -14,10 +14,10 @@ const exp = (function() {
     let text = {};
 
     if (settings.effort == 'highEffort') {
-        text.speed1 = "<strong> as fast as possible</strong>";
+        text.ignoreMsg = "<br>(Ignore the color of the font in which the words are written).";
         text.speed2 = "If you do not tap your right arrow as fast as possible,<br>the wheel will not build enough momentum to spin.";
     } else if (settings.effort == 'lowEffort') {
-        text.speed1 = "<strong> at a moderate pace</strong>";
+        text.ignoreMsg = "";
         text.speed2 = "If you tap your right arrow either too quickly or too slowly,<br>the wheel will not build enough momentum to spin.";
     };
 
@@ -74,12 +74,23 @@ const exp = (function() {
             </div>`,
 
             `<div class='parent'>
-                <p>Spinning a prize wheel is a two-step process.</p>
-                <p>First, you must build momentum by repeatedly tapping the right arrow on your keyboard.
-                Specifically, you'll need to tap your right arrow ${text.speed1}.
-                ${text.speed2}</p>
-                Once you build enough momentum, you must press your spacebar to spin the wheel.</p>
-                <p>To practice spinning, continue to the next page.</p>
+                <p>To spin a prize wheel, you must build momentum by pressing the correct keys on your keyboard.</p>
+                <p>Specifically, in the center of the wheel, names of colors will appear.<br>
+                Each color corresponds to a specific key on your keyboard:</p>
+                <div id="activation-code" style="margin: 0 auto; height:120px">
+                    <div class="keyCues">S<br>blue</div>
+                    <div class="keyCues">F<br>red</div>
+                    <div class="keyCues">H<br>green</div>
+                    <div class="keyCues">K<br>brown</div>
+                </div>
+                <p>To build momentum, you must press the key that corresponds to the color name in the center of the wheel.<br>For instance, if you see the word
+                "blue" in the center of the wheel, you must press the S key on your keyboard.</p></div>`,
+
+            `<div class='parent'>
+                <p>Each time you press the correct key, the wheel will build momentum.<br>
+                Each time you press the wrong key, the wheel will lose momentum.<br>
+                Once the wheel builds enough momentum, it will start spinning automatically.</p>
+                <p>To practice spinning, continue to the next page</p>
             </div>`],
 
         postPractice: [
@@ -104,12 +115,6 @@ const exp = (function() {
 
         let correctAnswers = [`Earn as many points as possible.`, `5`];
 
-        if (settings.effort == 'highEffort') {
-            correctAnswers.push(`I must tap my right arrow as fast as possible to build momentum.`);
-        } else if (settings.effort == 'lowEffort') {
-            correctAnswers.push(`I must tap my right arrow at a moderate pace to build momentum.`);
-        };
-
         const errorMessage = {
             type: jsPsychInstructions,
             pages: [`<div class='parent'><p>You provided the wrong answer.<br>To make sure you understand the game, please continue to re-read the instructions.</p></div>`],
@@ -132,11 +137,6 @@ const exp = (function() {
                     prompt: "How many points is it worth when the wheel lands on a 5?", 
                     name: `attnChk2`, 
                     options: [`0`, `5`, `10`],
-                },
-                {
-                    prompt: "Which of the following statements is true?", 
-                    name: `attnChk3`, 
-                    options: [`I must tap my right arrow as fast as possible to build momentum.`, `I must tap my right arrow at a moderate pace to build momentum.`],
                 },
             ],
             scale_width: 500,
@@ -169,13 +169,11 @@ const exp = (function() {
     const practiceWheel_1 = {
         type: jsPsychCanvasButtonResponse,
         prompt: `<div class='parent' style='font-size:16px'>
-            <p>Repeatedly tap your right arrow ${text.speed1} to build momentum.</br>
-            Once you build enough momentum, you'll see a "Ready!" message at the center of the wheel.</br>
-            This means you can spin the wheel by pressing your spacebar. Once you spin the wheel, you can stop tapping your right arrow.</p>
-            <p>Practice spinning by (1) tapping your right arrow ${text.speed1} and then<br>(2) pressing your spacebar when the "Ready!" message appears.</p>
+            <p>To build momentum, press the key on your keyboard that corresponds to the color word in the middle of the wheel.${text.ignoreMsg}</br>
+            Once you build enough momentum, the wheel will spin automatically.</p>
             </div>`,
         stimulus: function(c, spinnerData) {
-            dmPsych.spinner(c, spinnerData, [wedges.three, wedges.three, wedges.five, wedges.five], jsPsych.timelineVariable('targetPressTime'), [0], 1);
+            dmPsych.spinner(c, spinnerData, [wedges.three, wedges.three, wedges.five, wedges.five], jsPsych.timelineVariable('effort'), [0], 1);
         },
         nSpins: 1,
         canvas_size: [500, 500],
@@ -186,11 +184,11 @@ const exp = (function() {
         type: jsPsychCanvasButtonResponse,
         prompt: `<div class='parent' style='font-size:16px'>
             <p>Great job! Now, spin the wheel a few more time to get the hang of it. Remember:</p>
-            <p>Spin the wheel by (1) tapping your right arrow ${text.speed1} and then<br>(2) pressing your spacebar when the "Ready!" message appears.</p>
-            <p>Once you spin the wheel, you can stop tapping your right arrow.</p>
+            <p>To build momentum, press the key on your keyboard that corresponds to the color word in the middle of the wheel.${text.ignoreMsg}</br>
+            Once you build enough momentum, the wheel will spin automatically.</p>
             </div>`,
         stimulus: function(c, spinnerData) {
-            dmPsych.spinner(c, spinnerData, [wedges.three, wedges.three, wedges.five, wedges.five], jsPsych.timelineVariable('targetPressTime'), [0, 0, 0], 3);
+            dmPsych.spinner(c, spinnerData, [wedges.three, wedges.three, wedges.five, wedges.five], jsPsych.timelineVariable('effort'), [0, 0, 0], 3);
         },
         nSpins: 3,
         canvas_size: [500, 500],
@@ -268,15 +266,8 @@ const exp = (function() {
             mi = .81;
         };
 
-        // set target time between button presses
-        let targetPressTime;
-        if (settings.effort == 'highEffort') {
-            targetPressTime = [0, .17];
-        } else if (settings.effort == 'lowEffort') {
-            targetPressTime = [.2, .75];
-        };
-
-        let timelineVariables = [{game, game, sectors: sectors, mi: mi, ev: ev, sd: sd, targetPressTime: targetPressTime, guaranteedOutcome: guaranteedOutcome}];
+        // set length of target sequence
+        let timelineVariables = [{game, game, sectors: sectors, mi: mi, ev: ev, sd: sd, effort: settings.effort, guaranteedOutcome: guaranteedOutcome}];
 
         return timelineVariables;
     };
@@ -284,12 +275,12 @@ const exp = (function() {
     const wheel = {
         type: jsPsychCanvasButtonResponse,
         stimulus: function(c, spinnerData) {
-            dmPsych.spinner(c, spinnerData, jsPsych.timelineVariable('sectors'), jsPsych.timelineVariable('targetPressTime'), jsPsych.timelineVariable('guaranteedOutcome'), settings.nSpins);
+            dmPsych.spinner(c, spinnerData, jsPsych.timelineVariable('sectors'), jsPsych.timelineVariable('effort'), jsPsych.timelineVariable('guaranteedOutcome'), settings.nSpins);
         },
         nSpins: settings.nSpins,
         canvas_size: [500, 500],
         post_trial_gap: 1000,
-        data: {game: jsPsych.timelineVariable('game'), mi: jsPsych.timelineVariable('mi'), targetPressTime: jsPsych.timelineVariable('targetPressTime'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')},
+        data: {game: jsPsych.timelineVariable('game'), mi: jsPsych.timelineVariable('mi'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')},
     };
 
     const holeInOne = {
@@ -363,7 +354,7 @@ const exp = (function() {
         ];
         this.randomize_question_order = false;
         this.scale_width = 500;
-        this.data = {game: game, mi: jsPsych.timelineVariable('mi'), targetPressTime: jsPsych.timelineVariable('targetPressTime'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')};
+        this.data = {game: game, mi: jsPsych.timelineVariable('mi'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')};
         this.on_finish =(data) => {
             dmPsych.saveSurveyData(data);
         };
@@ -411,7 +402,7 @@ const exp = (function() {
         ];
         this.randomize_question_order = false;
         this.scale_width = 500;
-        this.data = {game: game, mi: jsPsych.timelineVariable('mi'), targetPressTime: jsPsych.timelineVariable('targetPressTime'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')};
+        this.data = {game: game, mi: jsPsych.timelineVariable('mi'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')};
         this.on_finish = (data) => {
             dmPsych.saveSurveyData(data);
         };
@@ -429,7 +420,7 @@ const exp = (function() {
         ];
         this.randomize_question_order = false;
         this.scale_width = 500;
-        this.data = {game: game, mi: jsPsych.timelineVariable('mi'), targetPressTime: jsPsych.timelineVariable('targetPressTime'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')};
+        this.data = {game: game, mi: jsPsych.timelineVariable('mi'), sectors: jsPsych.timelineVariable('sectors'), ev: jsPsych.timelineVariable('ev'), sd: jsPsych.timelineVariable('sd')};
         this.on_finish = (data) => {
             dmPsych.saveSurveyData(data);      
         };
@@ -634,7 +625,7 @@ const exp = (function() {
 
 }());
 
-const timeline = [exp.intro_spinTheWheel, exp.spinTheWheel, exp.consent, exp.intro_holeInOne, exp.holeInOne, 
+const timeline = [exp.consent, exp.intro_holeInOne, exp.holeInOne, 
     exp.intro_spinTheWheel, exp.wheel_practice, exp.postPractice, exp.attnChk, exp.postAttnChk, exp.spinTheWheel, 
     exp.demographics, exp.save_data];
 
