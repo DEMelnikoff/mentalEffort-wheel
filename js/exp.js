@@ -76,7 +76,7 @@ const exp = (function() {
             `<div class='parent'>
                 <p>To spin a prize wheel, you must build momentum by pressing the correct keys on your keyboard.</p>
                 <p>In the center of the wheel, names of colors will appear,<br>
-                each of which corresponds to a specific key on your keyboard:</p>
+                and each color name corresponds to a specific key on your keyboard:</p>
                 <div id="activation-code" style="margin: 0 auto; height:120px">
                     <div class="keyCues">S<br>blue</div>
                     <div class="keyCues">F<br>red</div>
