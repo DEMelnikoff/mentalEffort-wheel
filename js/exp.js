@@ -75,8 +75,8 @@ const exp = (function() {
 
             `<div class='parent'>
                 <p>To spin a prize wheel, you must build momentum by pressing the correct keys on your keyboard.</p>
-                <p>Specifically, in the center of the wheel, names of colors will appear.<br>
-                Each color corresponds to a specific key on your keyboard:</p>
+                <p>In the center of the wheel, names of colors will appear,<br>
+                each of which corresponds to a specific key on your keyboard:</p>
                 <div id="activation-code" style="margin: 0 auto; height:120px">
                     <div class="keyCues">S<br>blue</div>
                     <div class="keyCues">F<br>red</div>
@@ -112,6 +112,14 @@ const exp = (function() {
     };
 
     function MakeAttnChk (settings) {
+
+        const postPractice = {
+            type: jsPsychInstructions,
+            pages: html.postPractice,
+            show_clickable_nav: true,
+            post_trial_gap: 500,
+            allow_keys: false,
+        };
 
         let correctAnswers = [`Earn as many points as possible.`, `5`];
 
@@ -155,7 +163,7 @@ const exp = (function() {
         };
 
         const instLoop = {
-          timeline: [attnChk, conditionalNode],
+          timeline: [postPractice, attnChk, conditionalNode],
           loop_function: () => {
             const fail = jsPsych.data.get().last(2).select('totalErrors').sum() > 0 ? true : false;
             return fail;
@@ -216,14 +224,6 @@ const exp = (function() {
     p.intro_spinTheWheel = {
         type: jsPsychInstructions,
         pages: html.intro_spinTheWheel,
-        show_clickable_nav: true,
-        post_trial_gap: 500,
-        allow_keys: false,
-    };
-
-    p.postPractice = {
-        type: jsPsychInstructions,
-        pages: html.postPractice,
         show_clickable_nav: true,
         post_trial_gap: 500,
         allow_keys: false,
@@ -625,8 +625,9 @@ const exp = (function() {
 
 }());
 
-const timeline = [exp.consent, exp.intro_holeInOne, exp.holeInOne, 
-    exp.intro_spinTheWheel, exp.wheel_practice, exp.postPractice, exp.attnChk, exp.postAttnChk, exp.spinTheWheel, 
+const timeline = [
+    exp.consent, exp.intro_holeInOne, exp.holeInOne, 
+    exp.intro_spinTheWheel, exp.wheel_practice, exp.attnChk, exp.postAttnChk, exp.spinTheWheel, 
     exp.demographics, exp.save_data];
 
 jsPsych.run(timeline);
