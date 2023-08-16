@@ -14,7 +14,7 @@ const exp = (function() {
     let text = {};
 
     if (settings.effort == 'highEffort') {
-        text.ignoreMsg = "<br>(Ignore the color of the font in which the words are written).";
+        text.ignoreMsg = "<br>(Ignore the meaning of each word; the font color is all that matters).";
         text.speed2 = "If you do not tap your right arrow as fast as possible,<br>the wheel will not build enough momentum to spin.";
     } else if (settings.effort == 'lowEffort') {
         text.ignoreMsg = "";
@@ -75,16 +75,16 @@ const exp = (function() {
 
             `<div class='parent'>
                 <p>To spin a prize wheel, you must build momentum by pressing the correct keys on your keyboard.</p>
-                <p>In the center of the wheel, names of colors will appear,<br>
-                and each color name corresponds to a specific key on your keyboard:</p>
+                <p>In the center of the wheel, you'll see words written in colored fonts,<br>
+                and each font color corresponds to a key on your keyboard:</p>
                 <div id="activation-code" style="margin: 0 auto; height:120px">
                     <div class="keyCues">S<br>blue</div>
                     <div class="keyCues">F<br>red</div>
                     <div class="keyCues">H<br>green</div>
                     <div class="keyCues">K<br>brown</div>
                 </div>
-                <p>To build momentum, you must press the key that corresponds to the color name in the center of the wheel.<br>For instance, if you see the word
-                "blue" in the center of the wheel, you must press the S key on your keyboard.</p></div>`,
+                <p>To build momentum, you must press the key that corresponds to the color in which each word is written.<br>For instance, if you see
+                <span style="color:red">blue</span> in the center of the wheel, you must press the F key on your keyboard.</p></div>`,
 
             `<div class='parent'>
                 <p>Each time you press the correct key, the wheel will build momentum.<br>
@@ -177,7 +177,7 @@ const exp = (function() {
     const practiceWheel_1 = {
         type: jsPsychCanvasButtonResponse,
         prompt: `<div class='parent' style='font-size:16px'>
-            <p>To build momentum, press the key on your keyboard that corresponds to the color word in the middle of the wheel.${text.ignoreMsg}</br>
+            <p>To build momentum, press the key on your keyboard that corresponds to the color in which each word is written.${text.ignoreMsg}</br>
             Once you build enough momentum, the wheel will spin automatically.</p>
             </div>`,
         stimulus: function(c, spinnerData) {
@@ -192,7 +192,7 @@ const exp = (function() {
         type: jsPsychCanvasButtonResponse,
         prompt: `<div class='parent' style='font-size:16px'>
             <p>Great job! Now, spin the wheel a few more time to get the hang of it. Remember:</p>
-            <p>To build momentum, press the key on your keyboard that corresponds to the color word in the middle of the wheel.${text.ignoreMsg}</br>
+            <p>To build momentum, press the key on your keyboard that corresponds to the word in the middle of the wheel.${text.ignoreMsg}</br>
             Once you build enough momentum, the wheel will spin automatically.</p>
             </div>`,
         stimulus: function(c, spinnerData) {

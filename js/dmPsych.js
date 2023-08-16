@@ -501,7 +501,7 @@ const dmPsych = (function() {
       };
       let color = colorWords[colorIdx];
       targetWord = colorWords.splice(wordIdx, 1);
-      let stim = `<span style="color:${color}; font-size: 25px">${targetWord[0]}</span>`
+      let stim = `<span style="color:${targetWord[0]}; font-size: 25px">${color}</span>`
       if (colorWords.length == 2) {
         colorWords = ['blue', 'red', 'green', 'brown'];
       };
@@ -524,7 +524,6 @@ const dmPsych = (function() {
         nPress++;
         let rt = performance.now() - stimTime;
         spinnerData.pressTimes.push(rt);
-        console.log(spinnerData.pressTimes);
         nSlowDown = 0;
         vel = 0;
         vel_postDecel = 0;
