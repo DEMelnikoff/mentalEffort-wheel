@@ -23,8 +23,8 @@ const exp = (function() {
 
     jsPsych.data.addProperties({
         spins_per_wheel: settings.nSpins,
-        effort_order: settings.effort,
-        mi_order: settings.mi,
+        effort: settings.effort,
+        mi: settings.mi,
     });
 
     // define each wedge
